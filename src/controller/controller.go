@@ -60,10 +60,13 @@ func SetupRoutes(app *fiber.App, service *service.Service) {
 	leagues.Post("/", leagueController.CreateLeague)
 	leagues.Get("/:id", leagueController.GetLeague)
 	leagues.Post("/:id/simulate", leagueController.SimulateWeek)
+	leagues.Post("/:id/simulate-all", leagueController.SimulateAllWeeks)
 	leagues.Get("/:id/standings", leagueController.GetStandings)
+	leagues.Get("/:id/weeks/:week/matches", leagueController.GetWeeklyMatches)
 
 	// Prediction routes
 	leagues.Get("/:id/predict", predictionController.PredictFinalStandings)
+	leagues.Get("/:id/predictions", predictionController.GetPredictionWithConfidence)
 
 	// For backward compatibility, also add routes without /api prefix
 	// Team routes
@@ -84,8 +87,11 @@ func SetupRoutes(app *fiber.App, service *service.Service) {
 	app.Post("/leagues", leagueController.CreateLeague)
 	app.Get("/leagues/:id", leagueController.GetLeague)
 	app.Post("/leagues/:id/simulate", leagueController.SimulateWeek)
+	app.Post("/leagues/:id/simulate-all", leagueController.SimulateAllWeeks)
 	app.Get("/leagues/:id/standings", leagueController.GetStandings)
+	app.Get("/leagues/:id/weeks/:week/matches", leagueController.GetWeeklyMatches)
 
 	// Prediction routes
 	app.Get("/leagues/:id/predict", predictionController.PredictFinalStandings)
+	app.Get("/leagues/:id/predictions", predictionController.GetPredictionWithConfidence)
 }

@@ -120,3 +120,59 @@ func (c *LeagueController) GetStandings(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(standings)
 }
+
+// SimulateAllWeeks - Tüm kalan haftaları simüle et
+// @Summary Tüm kalan haftaları simüle et
+// @Description Liga bitene kadar otomatik olarak tüm haftaları simüle eder
+// @Tags leagues
+// @Accept json
+// @Produce json
+// @Param id path int true "Liga ID"
+// @Success 200 {object} model.LeagueSimulationResult
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /leagues/{id}/simulate-all [post]
+func (c *LeagueController) SimulateAllWeeks(ctx *fiber.Ctx) error {
+	id, err := ctx.ParamsInt("id")
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(ErrorResponse{Error: "Geçersiz liga ID"})
+	}
+
+	result, err := c.service.SimulateAllRemainingWeeks(ctx.Context(), id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{Error: err.Error()})
+	}
+
+	return ctx.JSON(result)
+}
+
+// GetWeeklyMatches - Haftalık maçları getir
+// @Summary Belirli bir haftanın maçlarını getir
+// @Description Ligada belirli bir haftanın tüm maçlarını getir
+// @Tags leagues
+// @Accept json
+// @Produce json
+// @Param id path int true "Liga ID"
+// @Param week path int true "Hafta numarası"
+// @Success 200 {array} model.Match
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /leagues/{id}/weeks/{week}/matches [get]
+func (c *LeagueController) GetWeeklyMatches(ctx *fiber.Ctx) error {
+	leagueID, err := ctx.ParamsInt("id")
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(ErrorResponse{Error: "Geçersiz liga ID"})
+	}
+
+	week, err := ctx.ParamsInt("week")
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(ErrorResponse{Error: "Geçersiz hafta numarası"})
+	}
+
+	matches, err := c.service.GetWeeklyMatches(ctx.Context(), leagueID, week)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{Error: err.Error()})
+	}
+
+	return ctx.JSON(matches)
+}

@@ -1,0 +1,759 @@
+basePath: /api
+definitions:
+  controller.CreateLeagueRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  controller.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  controller.SuccessResponse:
+    properties:
+      result:
+        type: string
+    type: object
+  model.League:
+    properties:
+      current_week:
+        type: integer
+      id:
+        type: integer
+      matches:
+        items:
+          $ref: '#/definitions/model.Match'
+        type: array
+      name:
+        type: string
+      standings:
+        $ref: '#/definitions/model.Standings'
+      teams:
+        items:
+          $ref: '#/definitions/model.Team'
+        type: array
+      total_weeks:
+        type: integer
+    type: object
+  model.LeagueSimulationResult:
+    properties:
+      ending_week:
+        description: Bitiş haftası
+        type: integer
+      final_standings:
+        allOf:
+        - $ref: '#/definitions/model.Standings'
+        description: Final puan tablosu
+      league_id:
+        description: Liga ID'si
+        type: integer
+      starting_week:
+        description: Başlangıç haftası
+        type: integer
+      weekly_results:
+        description: Haftalık sonuçlar
+        items:
+          $ref: '#/definitions/model.WeeklyResult'
+        type: array
+    type: object
+  model.Match:
+    properties:
+      away_score:
+        type: integer
+      away_team:
+        $ref: '#/definitions/model.Team'
+      away_team_id:
+        type: integer
+      home_score:
+        type: integer
+      home_team:
+        $ref: '#/definitions/model.Team'
+      home_team_id:
+        type: integer
+      id:
+        type: integer
+      played:
+        type: boolean
+      played_at:
+        type: string
+      week:
+        type: integer
+    type: object
+  model.MatchResult:
+    properties:
+      away_score:
+        description: Deplasman skoru
+        type: integer
+      away_team:
+        description: Deplasman takımı
+        type: string
+      home_score:
+        description: Ev sahibi skoru
+        type: integer
+      home_team:
+        description: Ev sahibi takım
+        type: string
+      match_id:
+        description: Maç ID'si
+        type: integer
+      played_at:
+        description: Oynanma zamanı
+        type: string
+      result:
+        description: Sonuç (Win/Draw/Loss)
+        type: string
+    type: object
+  model.PredictionResult:
+    properties:
+      confidence_percentage:
+        description: Güven yüzdesi
+        type: number
+      current_week:
+        description: Şu anki hafta
+        type: integer
+      predicted_standings:
+        allOf:
+        - $ref: '#/definitions/model.Standings'
+        description: Tahmini puan tablosu
+      prediction_type:
+        description: Tahmin türü
+        type: string
+      team_predictions:
+        description: Takım bazlı tahminler
+        items:
+          $ref: '#/definitions/model.TeamPrediction'
+        type: array
+      total_weeks:
+        description: Toplam hafta sayısı
+        type: integer
+    type: object
+  model.Standings:
+    properties:
+      teams:
+        items:
+          $ref: '#/definitions/model.TeamStanding'
+        type: array
+      week:
+        type: integer
+    type: object
+  model.Team:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      strength:
+        description: 1-100 scale representing team's strength
+        type: integer
+    type: object
+  model.TeamPrediction:
+    properties:
+      championship_probability:
+        description: Şampiyonluk olasılığı
+        type: number
+      current_points:
+        description: Şu anki puanı
+        type: integer
+      most_likely_position:
+        description: En olası sıralaması
+        type: integer
+      predicted_points:
+        description: Tahmini final puanı
+        type: integer
+      relegation_probability:
+        description: Küme düşme olasılığı
+        type: number
+      team_id:
+        description: Takım ID'si
+        type: integer
+      team_name:
+        description: Takım adı
+        type: string
+      top_three_probability:
+        description: İlk 3'e girme olasılığı
+        type: number
+    type: object
+  model.TeamStanding:
+    properties:
+      draws:
+        type: integer
+      goal_difference:
+        type: integer
+      goals_against:
+        type: integer
+      goals_for:
+        type: integer
+      losses:
+        type: integer
+      played:
+        type: integer
+      points:
+        type: integer
+      team_id:
+        type: integer
+      team_name:
+        type: string
+      wins:
+        type: integer
+    type: object
+  model.WeeklyResult:
+    properties:
+      matches:
+        description: O haftanın maçları
+        items:
+          $ref: '#/definitions/model.MatchResult'
+        type: array
+      standings_after:
+        allOf:
+        - $ref: '#/definitions/model.Standings'
+        description: Hafta sonrası puan durumu
+      standings_before:
+        allOf:
+        - $ref: '#/definitions/model.Standings'
+        description: Hafta öncesi puan durumu
+      week:
+        description: Hangi hafta
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+  description: API for simulating a football league with 4 teams
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Football League Simulator API
+  version: "1.0"
+paths:
+  /leagues:
+    post:
+      consumes:
+      - application/json
+      description: Create a new league with the provided name
+      parameters:
+      - description: League information
+        in: body
+        name: league
+        required: true
+        schema:
+          $ref: '#/definitions/controller.CreateLeagueRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.League'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Create a new league
+      tags:
+      - leagues
+  /leagues/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a specific league by its ID
+      parameters:
+      - description: League ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.League'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get a league by ID
+      tags:
+      - leagues
+  /leagues/{id}/predict:
+    get:
+      consumes:
+      - application/json
+      description: Predict the final standings for a league after all weeks are played
+      parameters:
+      - description: League ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Standings'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Predict final standings
+      tags:
+      - predictions
+  /leagues/{id}/predictions:
+    get:
+      consumes:
+      - application/json
+      description: Get comprehensive predictions with probabilities and confidence
+        levels (available after week 4)
+      parameters:
+      - description: League ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PredictionResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get detailed predictions with confidence levels
+      tags:
+      - predictions
+  /leagues/{id}/simulate:
+    post:
+      consumes:
+      - application/json
+      description: Simulate all matches for the next week in the league
+      parameters:
+      - description: League ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Standings'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Simulate a week of matches
+      tags:
+      - leagues
+  /leagues/{id}/simulate-all:
+    post:
+      consumes:
+      - application/json
+      description: Liga bitene kadar otomatik olarak tüm haftaları simüle eder
+      parameters:
+      - description: Liga ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.LeagueSimulationResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Tüm kalan haftaları simüle et
+      tags:
+      - leagues
+  /leagues/{id}/standings:
+    get:
+      consumes:
+      - application/json
+      description: Get the current standings for a league
+      parameters:
+      - description: League ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Standings'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get current standings
+      tags:
+      - leagues
+  /leagues/{id}/weeks/{week}/matches:
+    get:
+      consumes:
+      - application/json
+      description: Ligada belirli bir haftanın tüm maçlarını getir
+      parameters:
+      - description: Liga ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Hafta numarası
+        in: path
+        name: week
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Match'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Belirli bir haftanın maçlarını getir
+      tags:
+      - leagues
+  /matches:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all matches or matches for a specific week
+      parameters:
+      - description: Week number
+        in: query
+        name: week
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Match'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get all matches
+      tags:
+      - matches
+    post:
+      consumes:
+      - application/json
+      description: Create a new match with the provided information
+      parameters:
+      - description: Match information
+        in: body
+        name: match
+        required: true
+        schema:
+          $ref: '#/definitions/model.Match'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Match'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Create a new match
+      tags:
+      - matches
+  /matches/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a specific match by its ID
+      parameters:
+      - description: Match ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Match'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get a match by ID
+      tags:
+      - matches
+    put:
+      consumes:
+      - application/json
+      description: Update a match with the provided information
+      parameters:
+      - description: Match ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Match information
+        in: body
+        name: match
+        required: true
+        schema:
+          $ref: '#/definitions/model.Match'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Match'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Update a match
+      tags:
+      - matches
+  /teams:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all teams in the league
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Team'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get all teams
+      tags:
+      - teams
+    post:
+      consumes:
+      - application/json
+      description: Create a new team with the provided information
+      parameters:
+      - description: Team information
+        in: body
+        name: team
+        required: true
+        schema:
+          $ref: '#/definitions/model.Team'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Team'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Create a new team
+      tags:
+      - teams
+  /teams/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a team by its ID
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Delete a team
+      tags:
+      - teams
+    get:
+      consumes:
+      - application/json
+      description: Get a specific team by its ID
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Team'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get a team by ID
+      tags:
+      - teams
+    put:
+      consumes:
+      - application/json
+      description: Update a team with the provided information
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Team information
+        in: body
+        name: team
+        required: true
+        schema:
+          $ref: '#/definitions/model.Team'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Team'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Update a team
+      tags:
+      - teams
+  /teams/initialize:
+    post:
+      consumes:
+      - application/json
+      description: Create the initial 4 teams for the league
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/model.Team'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Create initial teams
+      tags:
+      - teams
+schemes:
+- http
+swagger: "2.0"
